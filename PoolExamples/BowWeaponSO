@@ -1,0 +1,77 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "BowWeaponData", menuName = "ScriptableObjects/Weapons/BowWeaponData")]
+public class BowWeaponScriptableObject : BaseWeaponScriptableObject
+{
+	[Space(10)] public BowWeaponData[] BowWeaponData;
+
+	[SerializeField] private GameObject arrowPrefab;
+
+	// For Pool
+	private const int maxNumber = 25;
+	private List<ArrowScript> arrowsList = new();
+	private Transform parentTransform;
+	private int count;
+
+	public override void InitWeapon()
+	{
+		currentLevel = 0;
+		MaxLevel = BowWeaponData.Length;
+
+		InitArrows();
+	}
+
+	private void InitArrows()
+	{
+		count = 0;
+
+		if (parentTransform != null)
+		{
+			Destroy(parentTransform.gameObject);
+		}
+
+		arrowsList.Clear();
+
+		parentTransform = new GameObject("ArrowsParent").transform;
+		parentTransform.position = Vector3.zero;
+
+		for (int i = 0; i < maxNumber; ++i)
+		{
+			var arrow = Instantiate(arrowPrefab, parentTransform);
+			arrowsList.Add(arrow.GetComponent<ArrowScript>());
+			arrow.SetActive(false);
+		}
+	}
+
+	public override float GetDamageToDeal()
+	{
+		return BowWeaponData[currentLevel - 1].AttackDamage + ((currentCharacterData.Strength + currentCharacterData.BonusStrength) * UnityEngine.Random.Range(0.5f, 1.5f));
+	}
+
+	public void SpawnArrow(Vector3 spawnPosition, float arrowSpeed, float arrowTimeBeforeDisable, float knockback, float dirX, float dirY)
+	{
+		var currentArrow = arrowsList[count];
+
+		currentArrow.gameObject.SetActive(true);
+		currentArrow.transform.position = spawnPosition;
+		currentArrow.Init(GetDamageToDeal(), arrowSpeed, arrowTimeBeforeDisable, knockback, dirX, dirY);
+
+		++count;
+
+		if (count >= maxNumber)
+		{
+			count = 0;
+		}
+	}
+}
+
+[Serializable]
+public class BowWeaponData : BaseWeaponData
+{	
+	[Range(1,7)] public int NumberArrows;
+	public float ArrowScale;
+	public float ArrowTimeBeforeDisable;
+	public float ArrowSpeed;
+}
