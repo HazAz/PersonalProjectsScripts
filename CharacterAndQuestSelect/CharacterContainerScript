@@ -1,0 +1,42 @@
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
+public class CharactersContainerScript : MonoBehaviour
+{
+	private bool hasInit = false;
+	private QuestSelectionManager questSelectionManager;
+
+	public void Init(QuestSelectionManager manager)
+	{
+		hasInit = true;
+
+		questSelectionManager = manager;
+	}
+
+	private void OnEnable()
+	{
+		if (!hasInit) return;
+		SelectFirstChild();
+	}
+
+	public void SelectFirstCharacter()
+	{
+		SelectFirstChild();
+	}
+
+	private void SelectFirstChild()
+	{
+		foreach (Transform child in transform)
+		{
+			if (child.gameObject.activeSelf)
+			{
+				EventSystem.current.SetSelectedGameObject(child.gameObject);
+				questSelectionManager.ShowCharacterStats(child.GetComponent<CharacterSelectCardButton>().CharacterData);
+				return;
+			}
+		}
+
+		questSelectionManager.SelectQuest();
+	}
+}
